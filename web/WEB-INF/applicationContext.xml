@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.0.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+        http://www.springframework.org/schema/jee
+        http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
+
+    <!-- Annotation config and scanning -->
+    <context:annotation-config />
+    <context:component-scan base-package="com.github.fallback" />
+    <context:mbean-export registration="ignoreExisting" />
+
+    <!-- Configures the @Controller programming model -->
+    <mvc:annotation-driven />
+
+    <!-- Transactions -->
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="dataSourceLazy" />
+    </bean>
+    <bean class="org.springframework.orm.jpa.JpaTransactionManager" id="transactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory" />
+    </bean>
+    <tx:annotation-driven proxy-target-class="true" transaction-manager="transactionManager" />
+
+    <!-- BoneCP configuration -->
+    <bean id="mainDataSource" class="com.jolbox.bonecp.BoneCPDataSource" destroy-method="close">
+        <property name="driverClass" value="com.mysql.jdbc.Driver" />
+        <property name="jdbcUrl" value="jdbc:mysql://localhost:3306/fallback" />
+        <property name="username" value="root" />
+        <property name="password" value="" />
+        <property name="idleConnectionTestPeriodInMinutes" value="1" />
+        <property name="idleMaxAgeInMinutes" value="4" />
+        <property name="maxConnectionsPerPartition" value="60" />
+        <property name="minConnectionsPerPartition" value="20" />
+        <property name="partitionCount" value="3" />
+        <property name="acquireIncrement" value="10" />
+        <property name="statementsCacheSize" value="50" />
+        <property name="releaseHelperThreads" value="3" />
+        <property name="lazyInit" value="true" />
+    </bean>
+    <bean id="dataSourceLazy" class="org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy">
+        <property name="targetDataSource" ref="mainDataSource" />
+    </bean>
+
+    <bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
+        <property name="locateExistingServerIfPossible" value="true" />
+    </bean>
+</beans>

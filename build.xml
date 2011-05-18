@@ -1,0 +1,275 @@
+<?xml version="1.0"?>
+<project name="fallback" basedir="." default="all">
+
+    <property file="user.properties" />
+    <property file="${user.home}/build.properties" />
+    <property name="alexandria.home" value="./lib" />
+    <property file="${alexandria.home}/jar.properties" />
+
+    <property name="project.name" value="${ant.project.name}"/>
+    <property name="lib.dir" value="lib"/>
+    <property name="target.dir" value="build"/>
+    <property name="junit.special.tests" value="**/*Tests.class" />
+
+    <property name="tomcat.home" value="/opt/tomcat6" />
+    <property name="expandedWar.dir" value="${tomcat.home}/webapps/${project.name}"/>
+
+    <tstamp>
+        <format property="NOW" pattern="yyyyMMdd-hh:mm:ss" />
+        <!-- Wed, 19 Jan 2011 18:19:37 -0800 -->
+        <format property="PROPER_NOW" pattern="E, dd MMM yyyy hh:mm:ss ZZ" />
+        <format property="YEAR" pattern="yyyy" />
+    </tstamp>
+
+    <typedef resource="com/googlecode/sweetened/sweetened.xml" classpath="${alexandria.home}/${sweetened.jar}:${alexandria.home}/${jgit.jar}" />
+    <sweetenedVersion />
+
+    <spath id="sweetened.classpath">
+        <sfilelist dir="${alexandria.home}">
+            <sfile name="${antlr.jar}" scope="runtime" />
+            <sfile name="${bonecp.jar}" scope="runtime" src="${alexandria.home}/${bonecp.src}" />
+            <sfile name="${commons-beanutils.jar}" scope="compile" />
+            <sfile name="${commons-collections.jar}" scope="compile" />
+            <sfile name="${commons-httpclient.jar}" scope="runtime" src="${alexandria.home}/${commons-httpclient.src}" />
+            <sfile name="${commons-io.jar}" scope="compile" />
+            <sfile name="${commons-lang.jar}" scope="compile" />
+            <sfile name="${commons-logging.jar}" scope="runtime" />
+            <sfile name="${dom4j.jar}" scope="runtime" />
+            <sfile name="${ehcache-2.jar}" scope="compile" src="${alexandria.home}/${ehcache-2.src}" />
+            <sfile name="${geronimo-jta.jar}" scope="runtime" />
+            <sfile name="${guava.jar}" scope="runtime" src="${alexandria.home}/${guava.src}" />
+            <sfile name="${hibernate3-3.6.2.jar}" scope="compile" />
+            <sfile name="${jackson-core-1.7.5.jar}" scope="compile" src="${alexandria.home}/${jackson.src}}" />
+            <sfile name="${jackson-mapper-1.7.5.jar}" scope="compile" src="${alexandria.home}/${jackson.src}" />
+            <sfile name="${javassist.jar}" scope="runtime" />
+            <sfile name="${jcl-over-slf4j.jar}" scope="runtime" />
+            <sfile name="${joda-time.jar}" scope="compile" src="${alexandria.home}/${joda-time.src}" />
+            <sfile name="${junit.jar}" scope="compile" />
+            <sfile name="${log4j.jar}" scope="compile" />
+            <sfile name="${mysql-connector-java.jar}" src="${alexandria.home}/${mysql-connector-java.src}" scope="runtime" />
+            <sfile name="${servlet-api-2.5.jar}" scope="compile" />
+            <sfile name="${slf4j-api.jar}" src="${slf4j-api.src}" scope="compile" />
+            <sfile name="${slf4j-log4j.jar}" scope="runtime" />
+
+            <sfile name="${aopalliance.jar}" scope="runtime" />
+            <sfile name="${javax.inject.jar}" scope="compile" />
+            <sfile name="${jpa.jar}" scope="compile" />
+
+            <sfile name="${asm.jar}" scope="runtime" />
+            <sfile name="${cglib.jar}" scope="runtime" />
+            <sfile name="${spring.aop.jar}" scope="compile" src="${alexandria.home}/${spring.aop.src}" />
+            <sfile name="${spring.asm.jar}" scope="compile" src="${alexandria.home}/${spring.asm.src}" />
+            <sfile name="${spring.aspects.jar}" scope="compile" src="${alexandria.home}/${spring.aspects.src}" />
+            <sfile name="${spring.beans.jar}" scope="compile" src="${alexandria.home}/${spring.beans.src}" />
+            <sfile name="${spring.context.jar}" scope="compile" src="${alexandria.home}/${spring.context.src}" />
+            <sfile name="${spring.context.support.jar}" scope="compile" src="${alexandria.home}/${spring.context.support.src}" />
+            <sfile name="${spring.core.jar}" scope="compile" src="${alexandria.home}/${spring.core.src}" />
+            <sfile name="${spring.expression.jar}" scope="runtime" src="${alexandria.home}/${spring.expression.src}" />
+            <sfile name="${spring.jdbc.jar}" scope="compile" src="${alexandria.home}/${spring.jdbc.src}" />
+            <sfile name="${spring.jms.jar}" scope="compile" src="${alexandria.home}/${spring.jms.src}" />
+            <sfile name="${spring.orm.jar}" scope="compile" src="${alexandria.home}/${spring.orm.src}" />
+            <sfile name="${spring.transaction.jar}" scope="compile" src="${alexandria.home}/${spring.transaction.src}" />
+            <sfile name="${spring.web.jar}" scope="compile" src="${alexandria.home}/${spring.web.src}" />
+            <sfile name="${spring.web.servlet.jar}" scope="compile" src="${alexandria.home}/${spring.web.servlet.src}" />
+        </sfilelist>
+    </spath>
+    <spath id="all.classpath" scope="all" parent="sweetened.classpath" />
+    <spath id="javadoc.classpath" scope="all" parent="sweetened.classpath" />
+    <spath id="unit.classpath" scope="all" parent="sweetened.classpath" />
+    <spath id="javac.classpath" scope="compile" parent="sweetened.classpath" />
+
+    <target name=".eclipse" description="Generate eclipse project metadata">
+        <sweetenedClasspath file=".classpath">
+            <sweetenedBits refid="sweetened.classpath" />
+            <data>
+                <classpath>
+                    <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+                    <sweetenedEntries />
+                    <classpathentry kind="src" path="src/java"/>
+                    <classpathentry kind="output" path="_eclipse"/>
+                </classpath>
+            </data>
+        </sweetenedClasspath>
+        <echoxml file=".project">
+            <projectDescription>
+                <name>${sVersionBranchName}</name>
+                <comment />
+                <projects />
+                <buildSpec>
+                    <buildCommand>
+                        <name>org.eclipse.jdt.core.javabuilder</name>
+                        <arguments />
+                    </buildCommand>
+                </buildSpec>
+                <natures>
+                    <nature>org.eclipse.jdt.core.javanature</nature>
+                </natures>
+            </projectDescription>
+        </echoxml>
+        <!-- configure compiler warnings, javadoc warnings, and save action settings -->
+        <sync todir=".settings">
+            <fileset dir=".settings-eclipse" />
+        </sync>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="${target.dir}/classes"/>
+        <javac
+            srcdir="src/java"
+            destdir="${target.dir}/classes"
+            optimize="off"
+            deprecation="off"
+            debug="on"
+            debuglevel="lines,vars,source"
+            source="1.5"
+            target="1.5"
+            encoding="UTF-8"
+            verbose="off"
+            fork="false"
+            includeantruntime="false">
+            <classpath path="${toString:javac.classpath}"/>
+        </javac>
+    </target>
+
+    <target name="compile-tests" depends="compile">
+        <mkdir dir="${target.dir}/classes-tests"/>
+        <javac
+            srcdir="test/src/java"
+            destdir="${target.dir}/classes-tests"
+            optimize="off"
+            deprecation="off"
+            debug="on"
+            debuglevel="lines,vars,source"
+            source="1.5"
+            target="1.5"
+            encoding="UTF-8"
+            verbose="off"
+            fork="false"
+            includeantruntime="false">
+
+            <classpath path="${toString:javac.classpath}"/>
+            <classpath path="${target.dir}/classes"/>
+        </javac>
+    </target>
+
+    <target name="clean" description="Clean project files">
+        <delete dir="${target.dir}" />
+    </target>
+
+    <target name="all" depends="clean,war">
+    </target>
+
+    <target name="war" depends="clean, sync-clean, sync-deploy" description="Package the project into a war file">
+        <mkdir dir="${target.dir}" />
+        <war destfile="${target.dir}/${project.name}.war" webxml="${basedir}/web/WEB-INF/web.xml">
+            <fileset dir="${expandedWar.dir}">
+                <exclude name="**/WEB-INF/web.xml" />
+            </fileset>
+        </war>
+    </target>
+
+    <target name="sync-clean">
+        <delete dir="${expandedWar.dir}" />
+    </target>
+
+    <target name="sync-deploy" depends="compile">
+        <property name="timeDriftLimit" value="200" />
+
+        <sync todir="${expandedWar.dir}" granularity="${timeDriftLimit}" verbose="true">
+            <fileset dir="web" />
+            <preserveintarget>
+                <!-- Taken care of below -->
+                <include name="META-INF/**" />
+                <include name="WEB-INF/classes/**" />
+                <include name="WEB-INF/lib/**" />
+            </preserveintarget>
+        </sync>
+
+        <sync todir="${expandedWar.dir}/WEB-INF/classes" granularity="${timeDriftLimit}" verbose="true">
+            <fileset dir="${target.dir}/classes" />
+            <preserveintarget>
+                <include name="META-INF/**" />
+                <include name="**/*.properties" />
+                <include name="**/*.xml" />
+            </preserveintarget>
+        </sync>
+
+        <sync todir="${expandedWar.dir}/WEB-INF/lib" verbose="true">
+            <mappedresources>
+                <restrict xmlns:rsel="antlib:org.apache.tools.ant.types.resources.selectors">
+                    <resources refid="all.classpath"/>
+                    <rsel:not>
+                        <rsel:name name="${servlet-api-2.5.jar}" />
+                    </rsel:not>
+                    <rsel:not>
+                        <rsel:name name="*junit*.jar" />
+                    </rsel:not>
+                </restrict>
+                <chainedmapper>
+                    <flattenmapper/>
+                    <globmapper from="*" to="*" />
+                </chainedmapper>
+            </mappedresources>
+            <preserveintarget>
+                <include name="**/*.jar" />
+            </preserveintarget>
+        </sync>
+    </target>
+
+    <target name="touch-webxml">
+         <touch file="${expandedWar.dir}/WEB-INF/web.xml" />
+    </target>
+
+    <target name="junit" depends="compile-tests">
+        <mkdir dir="${target.dir}/test-reports" />
+        <junit printsummary="yes" showoutput="yes" fork="yes" forkmode="once">
+            <classpath path="${toString:unit.classpath}" />
+            <classpath path="${target.dir}/classes" />
+            <classpath path="${target.dir}/classes-tests" />
+            <formatter type="plain" />
+            <batchtest todir="${target.dir}/test-reports">
+                <fileset dir="${target.dir}/classes-tests">
+                    <include name="${junit.special.tests}" />
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
+    <target name="junit-xml" depends="compile-tests">
+        <mkdir dir="${target.dir}/test-reports" />
+        <junit printsummary="yes" showoutput="yes" fork="yes" forkmode="once">
+            <classpath path="${toString:unit.classpath}" />
+            <classpath path="${target.dir}/classes" />
+            <classpath path="${target.dir}/classes-tests" />
+            <formatter type="xml" />
+            <batchtest todir="${target.dir}/test-reports">
+                <fileset dir="${target.dir}/classes-tests">
+                    <include name="${junit.special.tests}" />
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
+    <target name="javadoc">
+        <mkdir dir="${target.dir}/javadoc"/>
+        <javadoc
+            destdir="${target.dir}/javadoc"
+            author="true"
+            version="true"
+            use="true"
+            verbose="no"
+            windowtitle="Fallback"
+            maxmemory="256m">
+
+            <fileset dir="src/java">
+                <include name="**/*.java"/>
+            </fileset>
+
+            <classpath path="${toString:javadoc.classpath}" />
+
+            <doctitle><![CDATA[<h1>Fallback</h1>]]></doctitle>
+            <bottom><![CDATA[<i>Copyright &#169; ${YEAR} Fallback. All Rights Reserved. Build version: ${sVersion}</i>]]></bottom>
+        </javadoc>
+    </target>
+
+</project>
