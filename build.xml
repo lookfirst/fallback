@@ -11,8 +11,8 @@
     <property name="target.dir" value="build"/>
     <property name="junit.special.tests" value="**/*Tests.class" />
 
-    <property name="tomcat.home" value="/opt/tomcat6" />
-    <property name="expandedWar.dir" value="${tomcat.home}/webapps/${project.name}"/>
+    <property name="engine.home" value="/opt/tomcat6" />
+    <property name="war.dir" value="${engine.home}/webapps/${project.name}"/>
 
     <tstamp>
         <format property="NOW" pattern="yyyyMMdd-hh:mm:ss" />
@@ -162,20 +162,20 @@
     <target name="war" depends="clean, sync-clean, sync-deploy" description="Package the project into a war file">
         <mkdir dir="${target.dir}" />
         <war destfile="${target.dir}/${project.name}.war" webxml="${basedir}/web/WEB-INF/web.xml">
-            <fileset dir="${expandedWar.dir}">
+            <fileset dir="${war.dir}">
                 <exclude name="**/WEB-INF/web.xml" />
             </fileset>
         </war>
     </target>
 
     <target name="sync-clean">
-        <delete dir="${expandedWar.dir}" />
+        <delete dir="${war.dir}" />
     </target>
 
     <target name="sync-deploy" depends="compile">
-        <property name="timeDriftLimit" value="200" />
+        <property name="timeDriftLimit" value="1000" />
 
-        <sync todir="${expandedWar.dir}" granularity="${timeDriftLimit}" verbose="true">
+        <sync todir="${war.dir}" granularity="${timeDriftLimit}" verbose="true">
             <fileset dir="web" />
             <preserveintarget>
                 <!-- Taken care of below -->
@@ -185,7 +185,7 @@
             </preserveintarget>
         </sync>
 
-        <sync todir="${expandedWar.dir}/WEB-INF/classes" granularity="${timeDriftLimit}" verbose="true">
+        <sync todir="${war.dir}/WEB-INF/classes" granularity="${timeDriftLimit}" verbose="true">
             <fileset dir="${target.dir}/classes" />
             <preserveintarget>
                 <include name="META-INF/**" />
@@ -194,7 +194,7 @@
             </preserveintarget>
         </sync>
 
-        <sync todir="${expandedWar.dir}/WEB-INF/lib" verbose="true">
+        <sync todir="${war.dir}/WEB-INF/lib" verbose="true">
             <mappedresources>
                 <restrict xmlns:rsel="antlib:org.apache.tools.ant.types.resources.selectors">
                     <resources refid="all.classpath"/>
@@ -217,7 +217,7 @@
     </target>
 
     <target name="touch-webxml">
-         <touch file="${expandedWar.dir}/WEB-INF/web.xml" />
+         <touch file="${war.dir}/WEB-INF/web.xml" />
     </target>
 
     <target name="junit" depends="compile-tests">

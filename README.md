@@ -16,6 +16,11 @@ a RESTful servlet frontend that takes a request and calls a method on an
 EJB3 experience, this will look very familiar. Annotations are used as
 much as possible to simplify the Spring configuration.
 
+fallback will work with any modern servlet engine that supports api >=
+2.5. By default, it is setup to work most easily with Tomcat 6/7, but
+you can easily target the build script to point at your favorite
+container.
+
 Part of the beauty of this is that this fully functional system is up
 and running on Tomcat in about 3 seconds on my laptop.
 
@@ -60,8 +65,8 @@ Getting Started
 ---------------
 
 1. Clone this project: git clone 
-2. Install tomcat6 somewhere
-3. cd fallback; echo "tomcat.dir=/path/to/tomcat6" > user.properties
+2. Install tomcat6 somewhere (you can use any modern servlet engine)
+3. cd fallback; echo "engine.home=/path/to/tomcat6_or_7" > user.properties
 4. ant .eclipse
 
 The .eclipse target will generate a .project and .classpath file
@@ -84,6 +89,8 @@ directory.
 
 Before you can start up Tomcat, you need a MySQL database called
 'fallback' and accessible on localhost by user root with no password.
+
+    mysqladmin -u root create fallback
 
 If you want to change any of this before you start up Tomcat, just edit
 the database connection settings in the `web/WEB-INF/applicationContext.xml` 
