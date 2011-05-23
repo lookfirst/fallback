@@ -21,6 +21,8 @@
         <format property="YEAR" pattern="yyyy" />
     </tstamp>
 
+    <taskdef resource="net/sf/antcontrib/antcontrib.properties" classpath="${alexandria.home}/${ant-contrib.jar}" />
+
     <typedef resource="com/googlecode/sweetened/sweetened.xml" classpath="${alexandria.home}/${sweetened.jar}:${alexandria.home}/${jgit.jar}" />
     <sweetenedVersion />
 
@@ -270,6 +272,52 @@
             <doctitle><![CDATA[<h1>Fallback</h1>]]></doctitle>
             <bottom><![CDATA[<i>Copyright &#169; ${YEAR} Fallback. All Rights Reserved. Build version: ${sVersion}</i>]]></bottom>
         </javadoc>
+    </target>
+
+    <!--
+    Rebrand the project. This will ask for a new project name and package name
+    and will then create a new project with that name right beside this one on
+    the filesystem (aka up one dir from where the build.xml is).
+
+    It is also possible to supply the arguments beforehand like so:
+    ant rebrand -Dnew.project.name=fallguy -Dnew.package.name=com.fallguy
+    -->
+    <target name="rebrand">
+        <if>
+            <not><isset property="new.project.name" /></not>
+            <then>
+                <input message="New project name:" addproperty="new.project.name" defaultvalue="myproject" />
+            </then>
+        </if>
+        <if>
+            <not><isset property="new.package.name" /></not>
+            <then>
+                <input message="New package name:" addproperty="new.package.name" defaultvalue="com.myproject" />
+            </then>
+        </if>
+
+        <!-- copy everything but the source files -->
+        <property name="new.project.path" value="../${new.project.name}" />
+        <copy todir="${new.project.path}">
+            <fileset dir="${basedir}" excludes="src/**" />
+        </copy>
+
+        <!-- copy source files into the new package's path -->
+        <propertyregex property="new.package.path.name" input="${new.package.name}" regexp="\." replace="/" global="true" />
+        <property name="new.package.path" value="${new.project.path}/src/java/${new.package.path.name}" />
+        <copy todir="${new.package.path}">
+            <fileset dir="${basedir}/src/java/com/github/fallback" />
+        </copy>
+
+        <!-- find and replace the new project name in relevant files -->
+        <replaceregexp match="fallback" replace="${new.project.name}" flags="g" byline="true">
+            <fileset file="${new.project.path}/build.xml" />
+        </replaceregexp>
+        <replaceregexp match="com.github.fallback" replace="${new.package.name}" flags="g" byline="true">
+            <fileset dir="${new.package.path}">
+                <include name="**/*.java" />
+            </fileset>
+        </replaceregexp>
     </target>
 
 </project>
