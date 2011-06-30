@@ -11,8 +11,8 @@
     <property name="target.dir" value="build"/>
     <property name="junit.special.tests" value="**/*Tests.class" />
 
-    <property name="tomcat.home" value="/opt/tomcat6" />
-    <property name="expandedWar.dir" value="${tomcat.home}/webapps/${project.name}"/>
+    <property name="engine.home" value="/opt/tomcat6" />
+    <property name="war.dir" value="${engine.home}/webapps/${project.name}"/>
 
     <tstamp>
         <format property="NOW" pattern="yyyyMMdd-hh:mm:ss" />
@@ -20,6 +20,8 @@
         <format property="PROPER_NOW" pattern="E, dd MMM yyyy hh:mm:ss ZZ" />
         <format property="YEAR" pattern="yyyy" />
     </tstamp>
+
+    <taskdef resource="net/sf/antcontrib/antcontrib.properties" classpath="${alexandria.home}/${ant-contrib.jar}" />
 
     <typedef resource="com/googlecode/sweetened/sweetened.xml" classpath="${alexandria.home}/${sweetened.jar}:${alexandria.home}/${jgit.jar}" />
     <sweetenedVersion />
@@ -162,20 +164,20 @@
     <target name="war" depends="clean, sync-clean, sync-deploy" description="Package the project into a war file">
         <mkdir dir="${target.dir}" />
         <war destfile="${target.dir}/${project.name}.war" webxml="${basedir}/web/WEB-INF/web.xml">
-            <fileset dir="${expandedWar.dir}">
+            <fileset dir="${war.dir}">
                 <exclude name="**/WEB-INF/web.xml" />
             </fileset>
         </war>
     </target>
 
     <target name="sync-clean">
-        <delete dir="${expandedWar.dir}" />
+        <delete dir="${war.dir}" />
     </target>
 
     <target name="sync-deploy" depends="compile">
-        <property name="timeDriftLimit" value="200" />
+        <property name="timeDriftLimit" value="1000" />
 
-        <sync todir="${expandedWar.dir}" granularity="${timeDriftLimit}" verbose="true">
+        <sync todir="${war.dir}" granularity="${timeDriftLimit}" verbose="true">
             <fileset dir="web" />
             <preserveintarget>
                 <!-- Taken care of below -->
@@ -185,7 +187,7 @@
             </preserveintarget>
         </sync>
 
-        <sync todir="${expandedWar.dir}/WEB-INF/classes" granularity="${timeDriftLimit}" verbose="true">
+        <sync todir="${war.dir}/WEB-INF/classes" granularity="${timeDriftLimit}" verbose="true">
             <fileset dir="${target.dir}/classes" />
             <preserveintarget>
                 <include name="META-INF/**" />
@@ -194,7 +196,7 @@
             </preserveintarget>
         </sync>
 
-        <sync todir="${expandedWar.dir}/WEB-INF/lib" verbose="true">
+        <sync todir="${war.dir}/WEB-INF/lib" verbose="true">
             <mappedresources>
                 <restrict xmlns:rsel="antlib:org.apache.tools.ant.types.resources.selectors">
                     <resources refid="all.classpath"/>
@@ -217,7 +219,7 @@
     </target>
 
     <target name="touch-webxml">
-         <touch file="${expandedWar.dir}/WEB-INF/web.xml" />
+         <touch file="${war.dir}/WEB-INF/web.xml" />
     </target>
 
     <target name="junit" depends="compile-tests">
@@ -270,6 +272,52 @@
             <doctitle><![CDATA[<h1>Fallback</h1>]]></doctitle>
             <bottom><![CDATA[<i>Copyright &#169; ${YEAR} Fallback. All Rights Reserved. Build version: ${sVersion}</i>]]></bottom>
         </javadoc>
+    </target>
+
+    <!--
+    Rebrand the project. This will ask for a new project name and package name
+    and will then create a new project with that name right beside this one on
+    the filesystem (aka up one dir from where the build.xml is).
+
+    It is also possible to supply the arguments beforehand like so:
+    ant rebrand -Dnew.project.name=fallguy -Dnew.package.name=com.fallguy
+    -->
+    <target name="rebrand">
+        <if>
+            <not><isset property="new.project.name" /></not>
+            <then>
+                <input message="New project name:" addproperty="new.project.name" defaultvalue="myproject" />
+            </then>
+        </if>
+        <if>
+            <not><isset property="new.package.name" /></not>
+            <then>
+                <input message="New package name:" addproperty="new.package.name" defaultvalue="com.myproject" />
+            </then>
+        </if>
+
+        <!-- copy everything but the source files -->
+        <property name="new.project.path" value="../${new.project.name}" />
+        <copy todir="${new.project.path}">
+            <fileset dir="${basedir}" excludes="src/**" />
+        </copy>
+
+        <!-- copy source files into the new package's path -->
+        <propertyregex property="new.package.path.name" input="${new.package.name}" regexp="\." replace="/" global="true" />
+        <property name="new.package.path" value="${new.project.path}/src/java/${new.package.path.name}" />
+        <copy todir="${new.package.path}">
+            <fileset dir="${basedir}/src/java/com/github/fallback" />
+        </copy>
+
+        <!-- find and replace the new project name in relevant files -->
+        <replaceregexp match="fallback" replace="${new.project.name}" flags="g" byline="true">
+            <fileset file="${new.project.path}/build.xml" />
+        </replaceregexp>
+        <replaceregexp match="com.github.fallback" replace="${new.package.name}" flags="g" byline="true">
+            <fileset dir="${new.package.path}">
+                <include name="**/*.java" />
+            </fileset>
+        </replaceregexp>
     </target>
 
 </project>
