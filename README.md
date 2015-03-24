@@ -1,6 +1,8 @@
 fallback
 ========
 
+# This project is very old now. If you want something more modern and actively maintained, I suggest you look at [GWizard](https://github.com/gwizard/gwizard) instead.
+
 fallback provides a nice example web application archive (war) for
 integrating Spring / Hibernate / JMX / JPA / Ehcache.
 
